@@ -1,0 +1,16 @@
+
+public class Article {
+	StringBuilder text = new StringBuilder();
+String NL = System.getProperty("line.separator");
+	45.Scanner scanner = new Scanner(new FileInputStream(fFileName), fEncoding);
+	46.try {
+	47.while (scanner.hasNextLine()){
+	48.text.append(scanner.nextLine() + NL);
+	49.}
+	50.}
+	51.finally{
+	52.scanner.close();
+	53.}
+	54.log("Text read in: " + text);
+	55.}
+}

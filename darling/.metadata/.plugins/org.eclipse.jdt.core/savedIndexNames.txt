@@ -1,0 +1,3 @@
+INDEX VERSION 1.126+D:\construct\eclipse\workspace\darling\.metadata\.plugins\org.eclipse.jdt.core
+846367126.index
+1928806279.index

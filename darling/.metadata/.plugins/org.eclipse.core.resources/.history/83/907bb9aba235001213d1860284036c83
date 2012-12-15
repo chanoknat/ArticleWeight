@@ -1,0 +1,15 @@
+import java.io.IOException;
+
+
+public class Article {
+	public static void main(String... aArgs) throws IOException {
+	    String fileName = "D://input.txt";
+	    String encoding = "utf-8";
+	    
+	    ReadWriteTextFileWithEncoding test = new ReadWriteTextFileWithEncoding(fileName, encoding);
+	   // test.write();
+	    test.read();
+	  }
+	
+	
+}

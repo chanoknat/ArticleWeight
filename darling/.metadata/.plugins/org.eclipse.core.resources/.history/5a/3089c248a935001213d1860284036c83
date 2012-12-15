@@ -1,0 +1,43 @@
+import java.io.IOException;
+import java.text.BreakIterator;
+import java.util.Locale;
+
+
+public class Article {
+	private String fileAddress;
+	private String textInFile;
+	public Article(String fileAddress) throws IOException {
+		this.fileAddress = fileAddress; 
+		ReadWriteTextFileWithEncoding test = new ReadWriteTextFileWithEncoding(fileAddress, "UTF-8");
+	    textInFile = test.read();
+	    //System.out.print(textInFile);
+	    this.wrapParagraph();
+	}
+	public void wrapParagraph() {
+	//	public void printEachForward(BreakIterator boundary, String source) {    
+		 Locale thaiLocale = new Locale("th");
+		// String input = textInFile;
+		 BreakIterator boundary = BreakIterator.getWordInstance(thaiLocale);
+		 boundary.setText(textInFile);
+
+		 StringBuffer aftertext = new StringBuffer();
+		 int start = boundary.first();
+		 for (int end = boundary.next();
+		         end != BreakIterator.DONE;
+		         start = end, end = boundary.next()) {
+			 	 if(textInFile.substring(start, end).equals(System.getProperty("line.separator"))){ 
+			 	 aftertext.append(textInFile.substring(start, end)+">");
+			 	 } else {
+			 	 aftertext.append(textInFile.substring(start, end)+"|");
+			 	 }
+		  }
+		String afterTextStr = aftertext.toString();
+		System.out.print(afterTextStr);	 
+		 
+	}
+
+		
+	//}
+	
+	
+}

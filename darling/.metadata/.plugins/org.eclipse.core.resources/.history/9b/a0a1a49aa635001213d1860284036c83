@@ -1,0 +1,20 @@
+import java.io.IOException;
+
+
+public class Article {
+	private String fileAddress;
+	private String textInFile;
+	public Article(String fileAddress) throws IOException {
+		this.fileAddress = fileAddress; 
+		ReadWriteTextFileWithEncoding test = new ReadWriteTextFileWithEncoding(fileAddress, "UTF-8");
+	    textInFile = test.read();
+	    System.out.println(textInFile);
+	    this.wrapParagraph();
+	}
+	public void wrapParagraph() {
+		
+		
+	}
+	
+	
+}
