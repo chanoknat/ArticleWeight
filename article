@@ -1,0 +1,246 @@
+package healthy;
+
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.text.BreakIterator;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.ListIterator;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.Map.Entry;
+
+public class Article {
+  private String fileAddress;
+	private HashMap<String,Integer> notMeanWordMap;
+	private ArrayList<HashMap<String,Integer>> paraList ;
+	private HashMap<String, Integer> meanWordFreqMap;
+	private int paraCount;
+	private String textInFile;
+	private HashMap<String, Integer> titleHasMap;
+	private HashMap<String, Integer> totalWordMap;	
+	private ArrayList<HashMap<String,Float>> paraWeightList ;
+	private HashMap<String,Float> wordWeightMap;
+	public Article(String fileAddress) throws IOException {
+		this.fileAddress = fileAddress; 
+		
+		ReadWriteTextFileWithEncoding test = new ReadWriteTextFileWithEncoding(fileAddress, "UTF-8");
+	    textInFile = test.read();	    
+	    
+	    this.mapNotMeanWord();
+	    this.calFrequencyMeanWord();
+	    this.calParaFrequency();
+	    this.calFactorWeight();
+	    this.calDotProduct();
+	    System.out.print(paraCount); 
+	}
+	public String getFileAddress() {
+		return fileAddress;
+	}
+	/** Read file of stopWord list ,then record each stopWord(1line:1word) in the "notMeanWordMap" hashMap  */
+	public void mapNotMeanWord() {
+		notMeanWordMap = new HashMap<String,Integer>();
+		Scanner scanner = null;
+		try {
+			scanner = new Scanner(new FileInputStream("D://test1.txt"), "UTF-8");
+			while (scanner.hasNextLine()){
+				//System.out.println(scanner.nextLine());
+				notMeanWordMap.put(scanner.nextLine(),new Integer(0));  
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    finally{
+	    	scanner.close();
+	    }	    
+	}
+	
+	/**count paragraph(1line:1paragraph:n) then new record found meanWord in "meanWordFreqMap" hashMap that is contained "paraList" arrayList
+	 * (paraList record data of each paragraph)
+	 * ("meanWordFreqMap" hashMap 1:1 paragraph)
+	 * ("paraList"arrayList 1:n "meanWordFreqMap" hashMap|paragraph)
+	 *  */
+	public void calFrequencyMeanWord() {
+
+		 Locale thaiLocale = new Locale("th");
+		
+		 BreakIterator boundary = BreakIterator.getWordInstance(thaiLocale);
+		 boundary.setText(textInFile);
+		
+		 int start = boundary.first();
+		 Boolean check = false;
+		 Boolean titleCheck = true;
+		 totalWordMap = new HashMap<String, Integer>();
+		 paraCount = 0;
+		 paraList = new ArrayList<HashMap<String,Integer>>(); 
+		 meanWordFreqMap = new HashMap<String, Integer>();
+		 paraList.add(meanWordFreqMap);	
+		 paraCount++;
+		 titleHasMap = new HashMap<String,Integer>();	
+		 
+		 Boolean matchCount = false;	
+		 for (int end = boundary.next();
+		         end != BreakIterator.DONE;
+		         start = end, end = boundary.next()) {
+			 	
+			 	if (textInFile.substring(start, end).equals(System.getProperty("line.separator"))){ 
+			 		
+			 		if (check==true) {
+			 			// Paragraph Segmentation ( wrap as 1 paragraph : create 1 meanWordFreqMap )
+			 			 paraCount++;
+			 			 meanWordFreqMap = new HashMap<String, Integer>();
+			 			 paraList.add(meanWordFreqMap);
+			 			 if (titleCheck == true) {
+			 				 titleHasMap = paraList.get(0); 
+			 				 titleCheck = false;
+			 			 }
+
+			 	    }		
+			 	    check=true;
+			 	} else {
+			 			//count the frequency of found meanWord in each paragraph : record frequency value in "meanWordFreqMap" hashMap 
+			 		  	check=false;
+			 		  	String word = textInFile.substring(start, end);
+			 		  	if (!word.equals(" ")) {
+			 				Integer vCountText;
+			 				//check : Is this word a member in stopWord class? -> y:don't interest  
+				 		  	if (notMeanWordMap.containsKey(word) == false) {
+			 					//check :  Is this meanWord the key in "meanWordFreqMap" hashMap? -> y:its value add 1 | n:record this meanWord as a new member
+		 		  		
+				 		  		if (meanWordFreqMap.containsKey(word)) {
+				 		  			matchCount = false;
+			 						vCountText = meanWordFreqMap.get(word);
+			 						vCountText += 1;
+			 						meanWordFreqMap.put(word, vCountText);
+			 					} else {
+			 						matchCount = true;
+			 						meanWordFreqMap.put(word, new Integer(1));
+			 					}
+
+				 		  		if (matchCount == true) {
+				 		  			if (titleHasMap.containsKey(word) == true) {
+							 			vCountText = titleHasMap.get(word);
+					 					vCountText += 1;
+					 					titleHasMap.put(word, vCountText);
+							 		} else {
+							 			if (totalWordMap.containsKey(word) == true) {
+							 				vCountText = totalWordMap.get(word);
+							 				vCountText += 1;
+							 				totalWordMap.put(word, vCountText);
+							 			} else { 
+							 				totalWordMap.put(word, new Integer(1));
+							 			} 
+							 		}
+			 					}
+			 				} //else { ;}
+			 			//else { ;}
+			 		  	}
+			 	} 
+		 } //end of for loop	 	 
+	}
+	
+	
+	public void calParaFrequency() {
+		    ListIterator<HashMap<String,Integer>> it = paraList.listIterator();
+		    int o = 0;
+		    while (it.hasNext()) {
+		    	
+		    	int maxValue = 0;	
+		    	meanWordFreqMap = it.next();
+		    	
+		    	Set<Entry<String, Integer>> s = meanWordFreqMap.entrySet();
+		    	for (Map.Entry<String, Integer> item : s) {
+		    		
+		    		
+		    		System.out.println("key : " + item.getKey() + " | value : "
+                                + item.getValue().toString());
+		    		
+		    		if(maxValue < item.getValue().intValue()){
+		    		   maxValue = item.getValue().intValue();
+		    		}
+		    	}
+		    meanWordFreqMap.put("maxVal", new Integer(maxValue));
+		    System.out.println(maxValue);	
+			System.out.println("----------------end of para "+ o++ +"------------------");
+		    } 
+	}
+	public void calFactorWeight() {
+		// term_Weight = each_index_of_meanWordFreqMap x log(paraCount/paraCountMatchWord)
+	    ListIterator<HashMap<String,Integer>> its = paraList.listIterator();
+	    paraWeightList = new ArrayList<HashMap<String,Float>>(); 
+	    int o = 0;
+		
+		float maxVal;
+	    float value;    
+        float wordWeight;
+        float wordStandFreq;
+        double totalParagraph = Double.valueOf(paraCount);
+        double matchParagraph = 1.0;
+	    Double logValues;
+	    float logValue;
+
+	    String word;
+	    
+	    while (its.hasNext()) {
+    		wordWeightMap = new HashMap<String,Float>();
+    		paraWeightList.add(wordWeightMap);
+    		
+	    	HashMap<String,Integer> meanWordFreqMap = its.next();
+	    	maxVal = meanWordFreqMap.get("maxVal").floatValue();
+	    	//System.out.println(maxVal);
+	    	
+	    	Set<Entry<String, Integer>> s = meanWordFreqMap.entrySet();
+	    	for (Map.Entry<String, Integer> item : s) {
+	    		word = item.getKey();
+	    		if (word.equals("maxVal") == false) {
+	    		
+	    		if( titleHasMap.containsKey(word) ) {
+	    			matchParagraph = Double.valueOf( titleHasMap.get(word) );
+	    			//System.out.println(matchParagraph);
+	    		} else if( totalWordMap.containsKey(word) ) {
+	    			matchParagraph = Double.valueOf( totalWordMap.get(word) );
+	    			//System.out.println(matchParagraph);
+	    		}
+	    		value = item.getValue().floatValue();
+	    		wordStandFreq = value/maxVal;
+	    		logValues = new Double(Math.log(totalParagraph/matchParagraph));
+	    		logValue = logValues.floatValue();
+	    		//System.out.println(logValues);
+	    		//System.out.println(logValue);
+	    		
+	    		wordWeight = (wordStandFreq/maxVal)*logValue;
+	    		System.out.println(word);
+	    		//System.out.println(wordStandFreq);
+	    		System.out.println(wordWeight);
+	    		
+	    		wordWeightMap.put(word,new Float(wordWeight));   		
+	    		}
+	    	}
+	    	System.out.println("----------------end of para "+ o++ +"------------------");
+	    }
+    } 
+	public void calDotProduct(){
+		 //Dot Product is calculated from (x1x2)+(y1y2)
+	    ListIterator<HashMap<String,Float>> its = paraWeightList.listIterator();
+	    while (its.hasNext()) {
+	    	HashMap<String,Float> wordWeightMap = its.next();
+	    	
+	    	
+	    }	
+		 
+	}
+}
+	
+
+	
+
+
+
+	
+	
+
